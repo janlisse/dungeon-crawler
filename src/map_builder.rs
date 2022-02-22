@@ -63,10 +63,10 @@ impl MapBuilder {
 
             if rng.range(0, 2) == 1 {
                 self.build_horizontal_corridors(prev.x, new.x, prev.y);
-                self.build_vertical_corridors(prev.y, new.y, new.x)
+                self.build_vertical_corridors(prev.y, new.y, new.x);
             } else {
                 self.build_horizontal_corridors(prev.x, new.x, new.y);
-                self.build_vertical_corridors(prev.y, new.y, prev.x)
+                self.build_vertical_corridors(prev.y, new.y, prev.x);
             }
         }
     }
