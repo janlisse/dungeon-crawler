@@ -1,5 +1,4 @@
 use crate::prelude::*;
-use legion::world::SubWorld;
 
 #[system]
 #[read_component(Point)]
