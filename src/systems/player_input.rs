@@ -3,6 +3,8 @@ use crate::prelude::*;
 #[system]
 #[read_component(Point)]
 #[read_component(Player)]
+#[read_component(Enemy)]
+#[write_component(Health)]
 pub fn player_input(
     world: &mut SubWorld,
     commands: &mut CommandBuffer,
@@ -25,11 +27,13 @@ pub fn player_input(
             .unwrap();
 
         let mut enemies = <(Entity, &Point)>::query().filter(component::<Enemy>());
+        let mut did_something = false;
 
         if delta.x != 0 || delta.y != 0 {
             let maybe_hit = enemies.iter(world).find(|(_, pos)| **pos == destination);
 
             if let Some(enemy_hit) = maybe_hit {
+                did_something = true;
                 commands.push((
                     (),
                     WantsToAttack {
@@ -38,6 +42,7 @@ pub fn player_input(
                     },
                 ));
             } else {
+                did_something = true;
                 commands.push((
                     (),
                     WantsToMove {
@@ -47,6 +52,19 @@ pub fn player_input(
                 ));
             }
         }
+        if !did_something {
+            heal(world, player_entity);
+        }
         *turn_state = TurnState::PlayerTurn;
+    }
+}
+
+fn heal(world: &mut SubWorld, player_entity: Entity) {
+    if let Ok(mut health) = world
+        .entry_mut(player_entity)
+        .unwrap()
+        .get_component_mut::<Health>()
+    {
+        health.current = i32::min(health.max, health.current + 1);
     }
 }
