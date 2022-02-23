@@ -18,19 +18,35 @@ pub fn player_input(
             _ => Point::new(0, 0),
         };
 
+        let mut players = <(Entity, &Point)>::query().filter(component::<Player>());
+        let (player_entity, destination) = players
+            .iter(world)
+            .find_map(|(entity, pos)| Some((*entity, *pos + delta)))
+            .unwrap();
+
+        let mut enemies = <(Entity, &Point)>::query().filter(component::<Enemy>());
+
         if delta.x != 0 || delta.y != 0 {
-            let mut players = <(Entity, &Point)>::query().filter(component::<Player>());
-            players.iter(world).for_each(|(entity, pos)| {
-                let destination = *pos + delta;
+            let maybe_hit = enemies.iter(world).find(|(_, pos)| **pos == destination);
+
+            if let Some(enemy_hit) = maybe_hit {
+                commands.push((
+                    (),
+                    WantsToAttack {
+                        attacker: player_entity,
+                        victim: *enemy_hit.0,
+                    },
+                ));
+            } else {
                 commands.push((
                     (),
                     WantsToMove {
-                        entity: *entity,
+                        entity: player_entity,
                         destination,
                     },
                 ));
-            });
-            *turn_state = TurnState::PlayerTurn;
+            }
         }
+        *turn_state = TurnState::PlayerTurn;
     }
 }
